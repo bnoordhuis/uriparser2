@@ -44,7 +44,7 @@
  */
 
 /* What encodings are enabled? */
-#include <uriparser/UriDefsConfig.h>
+#include "UriDefsConfig.h"
 #if (!defined(URI_PASS_ANSI) && !defined(URI_PASS_UNICODE))
 /* Include SELF twice */
 # define URI_PASS_ANSI 1
@@ -55,17 +55,17 @@
 # undef URI_PASS_UNICODE
 #else
 # ifdef URI_PASS_ANSI
-#  include <uriparser/UriDefsAnsi.h>
+#  include "UriDefsAnsi.h"
 # else
-#  include <uriparser/UriDefsUnicode.h>
+#  include "UriDefsUnicode.h"
 #  include <wchar.h>
 # endif
 
 
 
 #ifndef URI_DOXYGEN
-# include <uriparser/Uri.h>
-# include <uriparser/UriIp4.h>
+# include "Uri.h"
+# include "UriIp4.h"
 # include "UriCommon.h"
 # include "UriParseBase.h"
 #endif
