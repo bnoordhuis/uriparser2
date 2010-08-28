@@ -171,7 +171,6 @@ char *uri_build(const URI *uri) {
 	char *s = malloc(size + 1);
 	if (s) {
 		char *p = s;
-
 		if (uri->scheme) {
 			p = append(p, uri->scheme);
 			*p++ = ':';
@@ -205,8 +204,7 @@ char *uri_build(const URI *uri) {
 			*p++ = '#';
 			p = append(p, uri->fragment);
 		}
-
-		s[size] = '\0';
+		*p = '\0';
 	}
 
 	return s;
