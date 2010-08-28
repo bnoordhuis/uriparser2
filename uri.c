@@ -5,21 +5,21 @@
 #include "uri.h"
 #include "uriparser/Uri.h"
 
-static const char *copy_range2(const char *first, const char *after_last, char **buffer) {
-	const char *s = *buffer;
-
-	if (first) {
-		const int size = after_last - first + 1;
-		memcpy(*buffer, first, size - 1);
-		(*buffer)[size] = '\0';
-		*buffer += size;
-	}
-
-	return s;
+/* returns the number of chars required to store the range as a string, including the nul byte */
+static int range_size(const UriTextRangeA *r) {
+	return r->first ? 1 + (r->afterLast - r->first) : 0;
 }
 
 static const char *copy_range(const UriTextRangeA *r, char **buffer) {
-	return copy_range2(r->first, r->afterLast, buffer);
+	const int size = range_size(r);
+	if (size > 0) {
+		const char *s = *buffer;
+		memcpy(*buffer, r->first, size - 1);
+		(*buffer)[size] = '\0';
+		*buffer += size;
+		return s;
+	}
+	return 0;
 }
 
 static int parse_int(const char *first, const char *after_last) {
@@ -35,15 +35,13 @@ static int parse_int(const char *first, const char *after_last) {
 	return 0;
 }
 
-#define SIZE(c)	((c).afterLast - (c).first + 1)
-
 static URI *create_uri(const UriUriA *uu) {
 	URI *uri = malloc(sizeof(*uri)
-		+ SIZE(uu->scheme)
-		+ SIZE(uu->userInfo) + 1	/* userinfo will be split on : */
-		+ SIZE(uu->hostText)
-		+ SIZE(uu->query)
-		+ SIZE(uu->fragment));
+		+ range_size(&uu->scheme)
+		+ range_size(&uu->userInfo) + 1	/* userinfo will be split on : */
+		+ range_size(&uu->hostText)
+		+ range_size(&uu->query)
+		+ range_size(&uu->fragment));
 
 	if (uri) {
 		char *buffer = (char *) (uri + 1);
