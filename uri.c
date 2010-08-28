@@ -12,13 +12,15 @@ static int range_size(const UriTextRangeA *r) {
 
 /* returns the number of chars required to store the path, including the nul byte */
 static int path_size(const UriPathSegmentA *ps) {
-	int size = 0;
-
-	for (; ps != 0; ps = ps->next) {
-		size += range_size(&ps->text);
+	if (ps) {
+		/* +1 for the nul byte; the extra byte from range_size() is used for the leading slash */
+		int size = 1;
+		for (; ps != 0; ps = ps->next) {
+			size += range_size(&ps->text);
+		}
+		return size;
 	}
-
-	return size;
+	return 0;
 }
 
 static const char *copy_range(const UriTextRangeA *r, char **buffer) {
@@ -37,7 +39,12 @@ static const char *copy_path(const UriPathSegmentA *ps, char **buffer) {
 	const char *s = *buffer;
 
 	for (; ps != 0; ps = ps->next) {
+		**buffer = '/'; (*buffer)++;
 		copy_range(&ps->text, buffer);
+		if (ps->next) {
+			/* chop off trailing null, we'll append at least one more path segment */
+			(*buffer)--;
+		}
 	}
 
 	return s;
@@ -68,11 +75,13 @@ static URI *create_uri(const UriUriA *uu) {
 	if (uri) {
 		char *buffer = (char *) (uri + 1);
 		uri->scheme = copy_range(&uu->scheme, &buffer);
+		uri->user = 0;
+		uri->pass = 0;
 		uri->host = copy_range(&uu->hostText, &buffer);
-		uri->query = copy_range(&uu->query, &buffer);
-		uri->fragment = copy_range(&uu->fragment, &buffer);
 		uri->port = parse_int(uu->portText.first, uu->portText.afterLast);
 		uri->path = copy_path(uu->pathHead, &buffer);
+		uri->query = copy_range(&uu->query, &buffer);
+		uri->fragment = copy_range(&uu->fragment, &buffer);
 	} else {
 		/* work around non-conformant malloc() implementations */
 		errno = ENOMEM;
