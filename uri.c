@@ -5,6 +5,12 @@
 #include "uri.h"
 #include "uriparser/Uri.h"
 
+/* copy n bytes from src to dst and add a nul byte. dst must be large enough to hold n + 1 bytes. */
+static void memcpyz(char *dst, const char *src, int n) {
+	memcpy(dst, src, n);
+	dst[n] = '\0';
+}
+
 /* returns the number of chars required to store the range as a string, including the nul byte */
 static int range_size(const UriTextRangeA *r) {
 	if (r->first && r->first != r->afterLast) {
@@ -27,12 +33,11 @@ static int path_size(const UriPathSegmentA *ps) {
 }
 
 static const char *copy_range(const UriTextRangeA *r, char **buffer) {
-	const int size = range_size(r);
-	if (size > 0) {
+	const int size = r->afterLast - r->first;
+	if (size) {
 		const char *s = *buffer;
-		memcpy(*buffer, r->first, size - 1);
-		(*buffer)[size] = '\0';
-		*buffer += size;
+		memcpyz(*buffer, r->first, size);
+		*buffer += size + 1;
 		return s;
 	}
 	return 0;
@@ -54,13 +59,10 @@ static const char *copy_path(const UriPathSegmentA *ps, char **buffer) {
 }
 
 static int parse_int(const char *first, const char *after_last) {
-	if (first) {
-		const int size = after_last - first + 1;
-		char buffer[size];
-
-		memcpy(buffer, first, size - 1);
-		buffer[size] = '\0';
-
+	const int size = after_last - first;
+	if (size) {
+		char buffer[size + 1];
+		memcpyz(buffer, first, size);
 		return atoi(buffer);
 	}
 	return 0;
