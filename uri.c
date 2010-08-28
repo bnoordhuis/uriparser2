@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "uri.h"
 #include "uriparser/Uri.h"
@@ -31,6 +32,9 @@ static URI *create_uri(const UriUriA *uu) {
 		uri->host = copy_range(&uu->hostText, &buffer);
 		uri->query = copy_range(&uu->query, &buffer);
 		uri->fragment = copy_range(&uu->fragment, &buffer);
+	} else {
+		/* work around non-conformant malloc() implementations */
+		errno = ENOMEM;
 	}
 
 	return uri;
