@@ -5,18 +5,24 @@
 #include "uri.h"
 #include "uriparser/Uri.h"
 
-#define SIZE(c)	((c).afterLast - (c).first)
-
-static const char *copy_range(const UriTextRangeA *r, char **buffer) {
+static const char *copy_range2(const char *first, const char *after_last, char **buffer) {
 	const char *s = *buffer;
 
-	const int size = SIZE(*r) + 1;
-	memcpy(*buffer, r->first, size);
-	*buffer[size] = '\0';
-	*buffer += size;
+	if (first) {
+		const int size = after_last - first + 1;
+		memcpy(*buffer, first, size - 1);
+		(*buffer)[size] = '\0';
+		*buffer += size;
+	}
 
 	return s;
 }
+
+static const char *copy_range(const UriTextRangeA *r, char **buffer) {
+	return copy_range2(r->first, r->afterLast, buffer);
+}
+
+#define SIZE(c)	((c).afterLast - (c).first + 1)
 
 static URI *create_uri(const UriUriA *uu) {
 	URI *uri = malloc(sizeof(*uri)
