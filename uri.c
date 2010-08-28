@@ -22,6 +22,19 @@ static const char *copy_range(const UriTextRangeA *r, char **buffer) {
 	return copy_range2(r->first, r->afterLast, buffer);
 }
 
+static int parse_int(const char *first, const char *after_last) {
+	if (first) {
+		const int size = after_last - first + 1;
+		char buffer[size];
+
+		memcpy(buffer, first, size - 1);
+		buffer[size] = '\0';
+
+		return atoi(buffer);
+	}
+	return 0;
+}
+
 #define SIZE(c)	((c).afterLast - (c).first + 1)
 
 static URI *create_uri(const UriUriA *uu) {
@@ -38,6 +51,7 @@ static URI *create_uri(const UriUriA *uu) {
 		uri->host = copy_range(&uu->hostText, &buffer);
 		uri->query = copy_range(&uu->query, &buffer);
 		uri->fragment = copy_range(&uu->fragment, &buffer);
+		uri->port = parse_int(uu->portText.first, uu->portText.afterLast);
 	} else {
 		/* work around non-conformant malloc() implementations */
 		errno = ENOMEM;
