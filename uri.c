@@ -55,3 +55,30 @@ URI *uri_parse(const char *uri) {
 char *uri_build(const URI *uri) {
 	return 0;
 }
+
+/* NULL-safe string comparison. a < b if a is NULL and b is not (and vice versa). */
+#define COMPARE(a, b)			\
+	if (a && b) {			\
+		int n = strcmp(a, b);	\
+		if (n) return n;	\
+	} else {			\
+		return a ? 1 : -1;	\
+	}
+
+int uri_compare(URI *a, URI *b) {
+	COMPARE(a->scheme, b->scheme);
+	COMPARE(a->host, b->host);
+
+	if (a->port != b->port) {
+		return a->port > b->port ? 1 : -1;
+	}
+
+	COMPARE(a->path, b->path);
+	COMPARE(a->query, b->query);
+	COMPARE(a->fragment, b->fragment);
+
+	COMPARE(a->user, b->user);
+	COMPARE(a->pass, b->pass);
+
+	return 0;
+}

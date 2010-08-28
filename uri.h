@@ -16,4 +16,6 @@ URI *uri_parse(const char *uri);
 
 char *uri_build(const URI *uri);
 
+int uri_compare(URI *a, URI *b);
+
 #endif	/* uri.h */
