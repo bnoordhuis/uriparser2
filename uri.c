@@ -10,6 +10,17 @@ static int range_size(const UriTextRangeA *r) {
 	return r->first ? 1 + (r->afterLast - r->first) : 0;
 }
 
+/* returns the number of chars required to store the path, including the nul byte */
+static int path_size(const UriPathSegmentA *ps) {
+	int size = 0;
+
+	for (; ps != 0; ps = ps->next) {
+		size += range_size(&ps->text);
+	}
+
+	return size;
+}
+
 static const char *copy_range(const UriTextRangeA *r, char **buffer) {
 	const int size = range_size(r);
 	if (size > 0) {
@@ -20,6 +31,16 @@ static const char *copy_range(const UriTextRangeA *r, char **buffer) {
 		return s;
 	}
 	return 0;
+}
+
+static const char *copy_path(const UriPathSegmentA *ps, char **buffer) {
+	const char *s = *buffer;
+
+	for (; ps != 0; ps = ps->next) {
+		copy_range(&ps->text, buffer);
+	}
+
+	return s;
 }
 
 static int parse_int(const char *first, const char *after_last) {
@@ -40,6 +61,7 @@ static URI *create_uri(const UriUriA *uu) {
 		+ range_size(&uu->scheme)
 		+ range_size(&uu->userInfo) + 1	/* userinfo will be split on : */
 		+ range_size(&uu->hostText)
+		+ path_size(uu->pathHead)
 		+ range_size(&uu->query)
 		+ range_size(&uu->fragment));
 
@@ -50,6 +72,7 @@ static URI *create_uri(const UriUriA *uu) {
 		uri->query = copy_range(&uu->query, &buffer);
 		uri->fragment = copy_range(&uu->fragment, &buffer);
 		uri->port = parse_int(uu->portText.first, uu->portText.afterLast);
+		uri->path = copy_path(uu->pathHead, &buffer);
 	} else {
 		/* work around non-conformant malloc() implementations */
 		errno = ENOMEM;
