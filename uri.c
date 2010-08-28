@@ -7,7 +7,10 @@
 
 /* returns the number of chars required to store the range as a string, including the nul byte */
 static int range_size(const UriTextRangeA *r) {
-	return r->first ? 1 + (r->afterLast - r->first) : 0;
+	if (r->first && r->first != r->afterLast) {
+		return 1 + (r->afterLast - r->first);
+	}
+	return 0;
 }
 
 /* returns the number of chars required to store the path, including the nul byte */
