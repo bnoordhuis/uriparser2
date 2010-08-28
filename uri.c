@@ -134,8 +134,82 @@ URI *uri_parse(const char *uri) {
 	return rv;
 }
 
+static char *append(char *dst, const char *src) {
+	const int size = strlen(src);
+	memcpy(dst, src, size);
+	return dst + size;
+}
+
 char *uri_build(const URI *uri) {
-	return 0;
+	int size = 0;
+
+	if (uri->scheme) {
+		size += strlen(uri->scheme) + 3;	/* "://" */
+	}
+	if (uri->user) {
+		size += strlen(uri->user) + 1;		/* ":" or "@" */
+	}
+	if (uri->pass) {
+		size += strlen(uri->pass) + 1;		/* "@" */
+	}
+	if (uri->host) {
+		size += strlen(uri->host);
+	}
+	if (uri->port) {
+		size += 1 + 5;				/* ":" port */
+	}
+	if (uri->path) {
+		size += strlen(uri->path);
+	}
+	if (uri->query) {
+		size += 1 + strlen(uri->query);		/* "?" query */
+	}
+	if (uri->fragment) {
+		size += 1 + strlen(uri->fragment);	/* "#" fragment */
+	}
+
+	char *s = malloc(size + 1);
+	if (s) {
+		char *p = s;
+
+		if (uri->scheme) {
+			p = append(p, uri->scheme);
+			*p++ = ':';
+			*p++ = '/';
+			*p++ = '/';
+		}
+		if (uri->user) {
+			p = append(p, uri->user);
+		}
+		if (uri->pass) {
+			*p++ = ':';
+			p = append(p, uri->pass);
+		}
+		if (uri->user || uri->pass) {
+			*p++ = '@';
+		}
+		if (uri->host) {
+			p = append(p, uri->host);
+		}
+		if (uri->port) {
+			p += snprintf(p, 6, ":%d", uri->port);
+		}
+		if (uri->path) {
+			p = append(p, uri->path);
+		}
+		if (uri->query) {
+			*p++ = '?';
+			p = append(p, uri->query);
+		}
+		if (uri->fragment) {
+			*p++ = '#';
+			p = append(p, uri->fragment);
+		}
+
+		s[size] = '\0';
+	}
+
+	return s;
 }
 
 /* NULL-safe string comparison. a < b if a is NULL and b is not (and vice versa). */
