@@ -67,7 +67,7 @@ static int parse_int(const char *first, const char *after_last) {
 }
 
 static URI *create_uri(const UriUriA *uu) {
-	URI *uri = malloc(sizeof(*uri)
+	URI *uri = calloc(1, sizeof(*uri)
 		+ range_size(&uu->scheme)
 		+ range_size(&uu->userInfo) + 1	/* userinfo will be split on : */
 		+ range_size(&uu->hostText)
