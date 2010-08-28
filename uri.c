@@ -6,9 +6,10 @@
 #include "uriparser/Uri.h"
 
 /* copy n bytes from src to dst and add a nul byte. dst must be large enough to hold n + 1 bytes. */
-static void memcpyz(char *dst, const char *src, int n) {
+static char *memcpyz(char *dst, const char *src, int n) {
 	memcpy(dst, src, n);
 	dst[n] = '\0';
+	return dst;
 }
 
 /* returns the number of chars required to store the range as a string, including the nul byte */
@@ -68,6 +69,27 @@ static int parse_int(const char *first, const char *after_last) {
 	return 0;
 }
 
+static void parse_user_info(URI *uri, const UriTextRangeA *r, char **buffer) {
+	uri->user = uri->pass = 0;
+
+	const int size = r->afterLast - r->first;
+	if (size) {
+		char *colon = memchr(r->first, ':', size);
+
+		const int user_size = (colon ? colon : r->afterLast) - r->first;
+		const int pass_size = r->afterLast - (colon ? colon + 1 : r->afterLast);
+
+		if (user_size) {
+			uri->user = memcpyz(*buffer, r->first, user_size);
+			*buffer += user_size + 1;
+		}
+		if (pass_size) {
+			uri->pass = memcpyz(*buffer, colon + 1, pass_size);
+			*buffer += pass_size + 1;
+		}
+	}
+}
+
 static URI *create_uri(const UriUriA *uu) {
 	URI *uri = calloc(1, sizeof(*uri)
 		+ range_size(&uu->scheme)
@@ -87,6 +109,7 @@ static URI *create_uri(const UriUriA *uu) {
 		uri->path = copy_path(uu->pathHead, &buffer);
 		uri->query = copy_range(&uu->query, &buffer);
 		uri->fragment = copy_range(&uu->fragment, &buffer);
+		parse_user_info(uri, &uu->userInfo, &buffer);
 	} else {
 		/* work around non-conformant malloc() implementations */
 		errno = ENOMEM;
