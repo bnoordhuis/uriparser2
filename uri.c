@@ -140,6 +140,12 @@ static char *append(char *dst, const char *src) {
 	return dst + size;
 }
 
+static int power_of_10(int n) {
+	int i;
+	for (i = 0; n > 0; i++, n /= 10);
+	return i;
+}
+
 char *uri_build(const URI *uri) {
 	int size = 0;
 
@@ -156,7 +162,7 @@ char *uri_build(const URI *uri) {
 		size += strlen(uri->host);
 	}
 	if (uri->port) {
-		size += 1 + 5;				/* ":" port */
+		size += 1 + power_of_10(uri->port);	/* ":" port */
 	}
 	if (uri->path) {
 		size += strlen(uri->path);
@@ -191,7 +197,7 @@ char *uri_build(const URI *uri) {
 			p = append(p, uri->host);
 		}
 		if (uri->port) {
-			p += snprintf(p, 6, ":%d", uri->port);
+			p += sprintf(p, ":%d", uri->port);
 		}
 		if (uri->path) {
 			p = append(p, uri->path);
