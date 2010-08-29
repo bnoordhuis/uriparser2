@@ -2,8 +2,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include "uri.h"
 #include "uriparser/Uri.h"
+#include "uriparser2.h"
 
 /* copy n bytes from src to dst and add a nul byte. dst must be large enough to hold n + 1 bytes. */
 static char *memcpyz(char *dst, const char *src, int n) {
