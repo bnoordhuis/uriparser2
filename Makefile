@@ -14,7 +14,7 @@ lib:	$(OBJS)
 	$(CC) -shared -o liburiparser2.so $(OBJS)
 
 staticlib:	$(OBJS)
-	$(AR) cq liburiparser2.a $(OBJS)
+	$(AR) cr liburiparser2.a $(OBJS)
 
 clean:
 	rm -rf liburiparser2.so liburiparser2.a test-uriparser2 $(OBJS)
