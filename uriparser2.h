@@ -35,8 +35,40 @@ typedef struct URI {
 } URI;
 
 #ifdef __cplusplus
-extern "C" {
-#endif
+
+#include <ostream>
+#include <cstdlib>
+
+extern "C" void *uri_parse2(const char *uri, URI *target);
+extern "C" char *uri_build(const URI *uri);
+extern "C" int uri_compare(const URI *a, const URI *b);
+
+inline URI::URI(const char* uri): reserved(uri ? uri_parse2(uri, this) : 0) {
+}
+
+inline URI::~URI() {
+	free((void *) reserved);
+}
+
+inline std::string URI::to_string() const {
+	char *s = uri_build(this);	/* FIXME handle NULL return value (ENOMEM) */
+	std::string rv(s);
+	free(s);
+	return rv;
+}
+
+inline bool URI::operator<(const URI& uri) const { return uri_compare(this, &uri) < 0; }
+inline bool URI::operator>(const URI& uri) const { return uri_compare(this, &uri) > 0; }
+inline bool URI::operator<=(const URI& uri) const { return uri_compare(this, &uri) <= 0; }
+inline bool URI::operator>=(const URI& uri) const { return uri_compare(this, &uri) >= 0; }
+inline bool URI::operator==(const URI& uri) const { return uri_compare(this, &uri) == 0; }
+inline bool URI::operator!=(const URI& uri) const { return uri_compare(this, &uri) != 0; }
+
+static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
+	return os << uri.to_string();
+}
+
+#else	/* defined(__cplusplus) */
 
 /**
  * Parse URI into its components.
@@ -64,40 +96,6 @@ char *uri_build(const URI *uri);
  */
 int uri_compare(const URI *a, const URI *b);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-#include <ostream>
-#include <cstdlib>
-
-extern "C" void *uri_parse2(const char *uri, URI *target);
-
-inline URI::URI(const char* uri): reserved(uri ? uri_parse2(uri, this) : 0) {
-}
-
-inline URI::~URI() {
-	free((void *) reserved);
-}
-
-inline std::string URI::to_string() const {
-	char *s = uri_build(this);	/* FIXME handle NULL return value (ENOMEM) */
-	std::string rv(s);
-	free(s);
-	return rv;
-}
-
-inline bool URI::operator<(const URI& uri) const { return uri_compare(this, &uri) < 0; }
-inline bool URI::operator>(const URI& uri) const { return uri_compare(this, &uri) > 0; }
-inline bool URI::operator<=(const URI& uri) const { return uri_compare(this, &uri) <= 0; }
-inline bool URI::operator>=(const URI& uri) const { return uri_compare(this, &uri) >= 0; }
-inline bool URI::operator==(const URI& uri) const { return uri_compare(this, &uri) == 0; }
-inline bool URI::operator!=(const URI& uri) const { return uri_compare(this, &uri) != 0; }
-
-static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
-	return os << uri.to_string();
-}
 #endif	/* __cplusplus */
 
 #endif	/* uriparser2.h */
