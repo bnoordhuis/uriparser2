@@ -1,6 +1,6 @@
 # uriparser2
 
-Your one-stop C libray for URI parsing.
+Your one-stop C and C++ libray for URI parsing.
 
 ## Why?
 
@@ -14,9 +14,9 @@ Build the dynamic and static library:
 
 	make all
 
-## Usage
+## C usage
 
-From `uriparser2.h`:
+uriparser2 exposes a straight-forward API to C client code. An excerpt from `uriparser2.h`:
 
 	/**
 	 * URI object. After the call to uri_parse() fields will be NULL (0 for the port) if their component was absent in the input string.
@@ -58,8 +58,46 @@ From `uriparser2.h`:
 	 */
 	int uri_compare(const URI *a, const URI *b);
 
+Example:
+
+	URI *uri = uri_parse("http://github.com/bnoordhuis/uriparser2");
+	char *s = uri_build(uri);
+	printf("uri=%s, host=%s, path=%s\n", s, uri->host, uri->path);
+	free(s);
+	free(uri);
+
+## C++ usage
+
+An idiomatic RAII class is exposed to C++ client code:
+
+	typedef struct URI {
+		const char *scheme;
+		const char *user;
+		const char *pass;
+		const char *host;
+		unsigned short port;
+		const char *path;
+		const char *query;
+		const char *fragment;
+
+		URI(const char *uri = 0);
+		~URI();
+
+		bool operator<(const URI& uri) const;
+		bool operator>(const URI& uri) const;
+		bool operator<=(const URI& uri) const;
+		bool operator>=(const URI& uri) const;
+		bool operator==(const URI& uri) const;
+		bool operator!=(const URI& uri) const;
+
+		std::string to_string() const;
+	} URI;
+
+Example:
+
+	URI uri("http://github.com/bnoordhuis/uriparser2");
+	std::cout << "uri=" << uri << ", host=" << uri->host << ", path=" << uri->path << std::endl;
 
 ## License
 
 uriparser2 is MIT-licensed. The bits from the original uriparser - http://uriparser.sourceforge.net/ - are BSD-licensed.
-
