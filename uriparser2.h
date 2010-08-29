@@ -14,7 +14,7 @@ typedef struct URI {
 	const char *query;
 	const char *fragment;
 #ifdef __cplusplus
-	void *const reserved;
+	const void *const reserved;
 	URI(const char *uri = 0);
 	~URI();
 #endif
@@ -64,7 +64,7 @@ inline URI::URI(const char* uri): reserved(uri ? uri_parse2(uri, this) : 0) {
 }
 
 inline URI::~URI() {
-	free(reserved);
+	free((void *) reserved);
 }
 
 static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
