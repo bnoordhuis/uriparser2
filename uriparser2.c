@@ -250,7 +250,7 @@ char *uri_build(const URI *uri) {
 	if (a && b) {			\
 		int n = strcmp(a, b);	\
 		if (n) return n;	\
-	} else {			\
+	} else if (a || b) {		\
 		return a ? 1 : -1;	\
 	}
 

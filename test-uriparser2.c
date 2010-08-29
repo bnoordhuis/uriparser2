@@ -86,6 +86,13 @@ static void recomposed_equals_original_url(void) {
 	assert(!strcmp(uri, uri2));
 }
 
+static void equal(void) {
+	const char *uri = "http://www.google.com/search?q=uriparser2&ln=en#top";
+	URI *a = uri_parse(uri);
+	URI *b = uri_parse(uri);
+	assert(0 == uri_compare(a, b));
+}
+
 int main(void) {
 	simple_test();
 	multi_segment_path();
@@ -95,6 +102,7 @@ int main(void) {
 	user_info_only_user();
 	user_info_only_pass();
 	recomposed_equals_original_url();
+	equal();
 	puts("All tests OK.");
 	return 0;
 }
