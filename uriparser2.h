@@ -47,6 +47,19 @@ int uri_compare(const URI *a, const URI *b);
 
 #ifdef __cplusplus
 }
-#endif
+
+/* C++ convenience methods. */
+
+#include <ostream>
+#include <cstdlib>
+
+static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
+	char *s = uri_build(&uri);
+	os << s;
+	free(s);
+	return os;
+}
+
+#endif	/* __cplusplus */
 
 #endif	/* uriparser2.h */
