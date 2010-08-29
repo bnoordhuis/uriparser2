@@ -1,6 +1,10 @@
 #ifndef URIPARSER2_H_
 #define URIPARSER2_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * URI object. After the call to uri_parse() fields will be NULL (0 for the port) if their component was absent in the input string.
  */
@@ -40,5 +44,9 @@ char *uri_build(const URI *uri);
  * @return -1 if a < b, 0 if a == b, 1 if a > b.
  */
 int uri_compare(const URI *a, const URI *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* uriparser2.h */
