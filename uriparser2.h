@@ -23,6 +23,13 @@ typedef struct URI {
 	URI(const char *uri = 0);
 	~URI();
 
+	bool operator<(const URI& uri) const;
+	bool operator>(const URI& uri) const;
+	bool operator<=(const URI& uri) const;
+	bool operator>=(const URI& uri) const;
+	bool operator==(const URI& uri) const;
+	bool operator!=(const URI& uri) const;
+
 	std::string to_string() const;
 #endif
 } URI;
@@ -80,6 +87,13 @@ inline std::string URI::to_string() const {
 	free(s);
 	return rv;
 }
+
+inline bool URI::operator<(const URI& uri) const { return uri_compare(this, &uri) < 0; }
+inline bool URI::operator>(const URI& uri) const { return uri_compare(this, &uri) > 0; }
+inline bool URI::operator<=(const URI& uri) const { return uri_compare(this, &uri) <= 0; }
+inline bool URI::operator>=(const URI& uri) const { return uri_compare(this, &uri) >= 0; }
+inline bool URI::operator==(const URI& uri) const { return uri_compare(this, &uri) == 0; }
+inline bool URI::operator!=(const URI& uri) const { return uri_compare(this, &uri) != 0; }
 
 static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
 	return os << uri.to_string();
