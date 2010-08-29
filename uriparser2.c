@@ -33,6 +33,15 @@ static int path_size(const UriPathSegmentA *ps) {
 	return 0;
 }
 
+static int uri_size(const UriUriA *uu) {
+	return range_size(&uu->scheme)
+		+ range_size(&uu->userInfo) + 1	/* userinfo will be split on : */
+		+ range_size(&uu->hostText)
+		+ path_size(uu->pathHead)
+		+ range_size(&uu->query)
+		+ range_size(&uu->fragment);
+}
+
 static const char *copy_range(const UriTextRangeA *r, char **buffer) {
 	const int size = r->afterLast - r->first;
 	if (size) {
@@ -90,48 +99,68 @@ static void parse_user_info(URI *uri, const UriTextRangeA *r, char **buffer) {
 	}
 }
 
-static URI *create_uri(const UriUriA *uu) {
-	URI *uri = calloc(1, sizeof(*uri)
-		+ range_size(&uu->scheme)
-		+ range_size(&uu->userInfo) + 1	/* userinfo will be split on : */
-		+ range_size(&uu->hostText)
-		+ path_size(uu->pathHead)
-		+ range_size(&uu->query)
-		+ range_size(&uu->fragment));
+static void init_uri(const UriUriA *uu, URI *uri, char *buffer) {
+	uri->scheme = copy_range(&uu->scheme, &buffer);
+	uri->user = 0;
+	uri->pass = 0;
+	uri->host = copy_range(&uu->hostText, &buffer);
+	uri->port = parse_int(uu->portText.first, uu->portText.afterLast);
+	uri->path = copy_path(uu->pathHead, &buffer);
+	uri->query = copy_range(&uu->query, &buffer);
+	uri->fragment = copy_range(&uu->fragment, &buffer);
+	parse_user_info(uri, &uu->userInfo, &buffer);
+}
 
-	if (uri) {
-		char *buffer = (char *) (uri + 1);
-		uri->scheme = copy_range(&uu->scheme, &buffer);
-		uri->user = 0;
-		uri->pass = 0;
-		uri->host = copy_range(&uu->hostText, &buffer);
-		uri->port = parse_int(uu->portText.first, uu->portText.afterLast);
-		uri->path = copy_path(uu->pathHead, &buffer);
-		uri->query = copy_range(&uu->query, &buffer);
-		uri->fragment = copy_range(&uu->fragment, &buffer);
-		parse_user_info(uri, &uu->userInfo, &buffer);
+/* this function saves the URI components after the URI object itself, so it can be released with a single call to free() */
+URI *uri_parse(const char *input) {
+	UriParserStateA state;
+	UriUriA uu;
+	URI *uri;
+
+	state.uri = &uu;
+	if (URI_SUCCESS == uriParseUriA(&state, input)) {
+		uri = calloc(1, sizeof(*uri) + uri_size(&uu));
+		if (uri) {
+			init_uri(&uu, uri, (char *) (uri + 1));
+		} else {
+			/* work around non-conformant malloc() implementations */
+			errno = ENOMEM;
+		}
 	} else {
-		/* work around non-conformant malloc() implementations */
-		errno = ENOMEM;
+		uri = 0;
 	}
+
+	int saved_errno = errno;
+	uriFreeUriMembersA(&uu);
+	errno = saved_errno;
 
 	return uri;
 }
 
-URI *uri_parse(const char *uri) {
+/* this is a helper function for the C++ constructor that saves the URI components to a separately malloc()'ed buffer */
+void *uri_parse2(const char *input, URI *uri) {
 	UriParserStateA state;
+	char *buffer;
 	UriUriA uu;
-	URI *rv;
 
 	state.uri = &uu;
-	if (URI_SUCCESS == uriParseUriA(&state, uri)) {
-		rv = create_uri(&uu);
+	if (URI_SUCCESS == uriParseUriA(&state, input)) {
+		buffer = malloc(uri_size(&uu));
+		if (buffer) {
+			init_uri(&uu, uri, buffer);
+		} else {
+			/* work around non-conformant malloc() implementations */
+			errno = ENOMEM;
+		}
 	} else {
-		rv = 0;
+		buffer = 0;
 	}
-	uriFreeUriMembersA(&uu);
 
-	return rv;
+	int saved_errno = errno;
+	uriFreeUriMembersA(&uu);
+	errno = saved_errno;
+
+	return buffer;
 }
 
 static char *append(char *dst, const char *src) {

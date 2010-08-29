@@ -1,14 +1,10 @@
 #ifndef URIPARSER2_H_
 #define URIPARSER2_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * URI object. After the call to uri_parse() fields will be NULL (0 for the port) if their component was absent in the input string.
  */
-typedef struct {
+typedef struct URI {
 	const char *scheme;
 	const char *user;
 	const char *pass;
@@ -17,7 +13,16 @@ typedef struct {
 	const char *path;
 	const char *query;
 	const char *fragment;
+#ifdef __cplusplus
+	void *const reserved;
+	URI(const char *uri = 0);
+	~URI();
+#endif
 } URI;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Parse URI into its components.
@@ -47,11 +52,20 @@ int uri_compare(const URI *a, const URI *b);
 
 #ifdef __cplusplus
 }
+#endif
 
-/* C++ convenience methods. */
-
+#ifdef __cplusplus
 #include <ostream>
 #include <cstdlib>
+
+extern "C" void *uri_parse2(const char *uri, URI *target);
+
+inline URI::URI(const char* uri): reserved(uri ? uri_parse2(uri, this) : 0) {
+}
+
+inline URI::~URI() {
+	free(reserved);
+}
 
 static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
 	char *s = uri_build(&uri);
@@ -59,7 +73,6 @@ static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
 	free(s);
 	return os;
 }
-
 #endif	/* __cplusplus */
 
 #endif	/* uriparser2.h */
