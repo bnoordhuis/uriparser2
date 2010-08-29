@@ -39,6 +39,6 @@ char *uri_build(const URI *uri);
  * @param b Second URI object.
  * @return -1 if a < b, 0 if a == b, 1 if a > b.
  */
-int uri_compare(URI *a, URI *b);
+int uri_compare(const URI *a, const URI *b);
 
 #endif	/* uriparser2.h */

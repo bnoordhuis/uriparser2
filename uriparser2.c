@@ -225,7 +225,7 @@ char *uri_build(const URI *uri) {
 		return a ? 1 : -1;	\
 	}
 
-int uri_compare(URI *a, URI *b) {
+int uri_compare(const URI *a, const URI *b) {
 	COMPARE(a->scheme, b->scheme);
 	COMPARE(a->host, b->host);
 
