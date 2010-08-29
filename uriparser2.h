@@ -1,6 +1,10 @@
 #ifndef URIPARSER2_H_
 #define URIPARSER2_H_
 
+#ifdef __cplusplus
+#include <string>
+#endif
+
 /**
  * URI object. After the call to uri_parse() fields will be NULL (0 for the port) if their component was absent in the input string.
  */
@@ -15,8 +19,11 @@ typedef struct URI {
 	const char *fragment;
 #ifdef __cplusplus
 	const void *const reserved;
+
 	URI(const char *uri = 0);
 	~URI();
+
+	std::string to_string() const;
 #endif
 } URI;
 
@@ -67,11 +74,15 @@ inline URI::~URI() {
 	free((void *) reserved);
 }
 
-static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
-	char *s = uri_build(&uri);
-	os << s;
+inline std::string URI::to_string() const {
+	char *s = uri_build(this);	/* FIXME handle NULL return value (ENOMEM) */
+	std::string rv(s);
 	free(s);
-	return os;
+	return rv;
+}
+
+static inline std::ostream& operator<<(std::ostream& os, const URI& uri) {
+	return os << uri.to_string();
 }
 #endif	/* __cplusplus */
 
