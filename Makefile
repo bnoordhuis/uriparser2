@@ -6,6 +6,10 @@ OBJS	=uriparser2.o uriparser/UriParse.o uriparser/UriParseBase.o uriparser/UriCo
 
 all:	lib staticlib
 
+test:	staticlib
+	$(CC) -o test-uriparser2 test-uriparser2.c liburiparser2.a
+	./test-uriparser2
+
 lib:	$(OBJS)
 	$(CC) -shared -o liburiparser2.so $(OBJS)
 
@@ -13,4 +17,4 @@ staticlib:	$(OBJS)
 	$(AR) cq liburiparser2.a $(OBJS)
 
 clean:
-	rm -rf liburiparser2.so liburiparser2.a $(OBJS)
+	rm -rf liburiparser2.so liburiparser2.a test-uriparser2 $(OBJS)
