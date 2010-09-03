@@ -1,6 +1,6 @@
 # uriparser2
 
-Your one-stop C and C++ libray for URI parsing.
+Your one-stop C and C++ library for URI parsing.
 
 ## Why?
 
